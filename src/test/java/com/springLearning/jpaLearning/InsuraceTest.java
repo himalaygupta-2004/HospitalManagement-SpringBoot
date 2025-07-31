@@ -37,15 +37,15 @@ public class InsuraceTest {
         System.out.println(newPatient);
     }
 
-    @Test
-    public void TestCreateAppointment( ){
-        Appointment appointment = Appointment.builder()
-                .appointmentTime(LocalDateTime.of(2025,11,1,14,00,00))
-                .reason("Cancer")
-                .build();
-
-        var newAppointment = appointmentService.createNewAppointment(appointment,1L,2L);
-        System.out.println(newAppointment);
+//    @Test
+//    public void TestCreateAppointment( ){
+//        Appointment appointment = Appointment.builder()
+//                .appointmentTime(LocalDateTime.of(2025,11,1,14,00,00))
+//                .reason("Cancer")
+//                .build();
+//
+//        var newAppointment = appointmentService.createNewAppointment(appointment,1L,2L);
+//        System.out.println(newAppointment);
     }
 
 

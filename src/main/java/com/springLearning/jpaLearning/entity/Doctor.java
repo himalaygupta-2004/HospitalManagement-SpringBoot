@@ -3,10 +3,7 @@ package com.springLearning.jpaLearning.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Getter
@@ -31,5 +28,6 @@ public class Doctor {
     @ManyToMany(mappedBy = "doctors")
     private Set<Department> departments = new HashSet<>();
 
-
+    @OneToMany(mappedBy = "doctor")
+    private List<Appointment> appointments = new ArrayList<>();
 }

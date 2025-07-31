@@ -30,7 +30,10 @@ public class Department {
 
 //    Multiple Mapping
     @ManyToMany
-    @JoinTable(joinColumns = @JoinColumn(name = "dept_id"))
+    @JoinTable(
+            joinColumns = @JoinColumn(name = "dept_id"),
+            inverseJoinColumns = @JoinColumn(name = "doctor_id")
+    )
     private Set<Doctor> doctors = new HashSet<>();
 
 }
