@@ -1,4 +1,24 @@
 package com.springLearning.jpaLearning.dto;
 
+import com.springLearning.jpaLearning.entity.type.RoleType;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@Data
+//@RequiredArgsConstructor
+@NoArgsConstructor
+@AllArgsConstructor
 public class SignupRequestDto {
+    private String username;
+    private String password;
+    private String name;
+
+//    Shouldn't be in production
+    private Set<RoleType> roles =new HashSet<>();
+
 }

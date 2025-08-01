@@ -1,9 +1,7 @@
 package com.springLearning.jpaLearning.entity;
 import com.springLearning.jpaLearning.entity.type.BloodGroupType;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -14,13 +12,16 @@ import java.util.List;
 @ToString
 @Setter
 @Getter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Table( //name = "patient",
         uniqueConstraints = {
         @UniqueConstraint(name = "unique_patient_email",columnNames = {"email"})
-},
-        indexes = {
-        @Index(name = "idx_patient_id",columnList ="id" )
-        }
+}
+//        indexes = {
+//        @Index(name = "idx_patient_id",columnList ="id" )
+//        }
 )
 
 public class Patient {
@@ -37,6 +38,10 @@ public class Patient {
     private String email;
 
     private String gender;
+
+    @OneToOne
+    @MapsId
+    private User user;
 
     @CreationTimestamp
     @Column(updatable = false)
