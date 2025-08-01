@@ -1,8 +1,7 @@
-package com.springLearning.jpaLearning.service;
+package com.springLearning.jpaLearning.security;
 
 import com.springLearning.jpaLearning.entity.User;
 import com.springLearning.jpaLearning.repository.UserRepository;
-import com.springLearning.jpaLearning.security.AuthUtil;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

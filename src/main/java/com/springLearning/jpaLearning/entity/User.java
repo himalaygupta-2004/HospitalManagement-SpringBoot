@@ -1,5 +1,6 @@
 package com.springLearning.jpaLearning.entity;
 
+import com.springLearning.jpaLearning.entity.type.AuthProviderType;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,6 +15,9 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 @Entity
+@Table(indexes = {
+        @Index(name = "provider_id_provider_type",columnList ="providerId , providerType" )
+} )
 public class User implements UserDetails {
 
     @Id
@@ -23,6 +27,11 @@ public class User implements UserDetails {
     @JoinColumn(unique = true)
     private String username;
     private String password;
+
+    private String providerId;
+
+    @Enumerated(EnumType.STRING)
+    private AuthProviderType providerType;
 
 
 //    Used for Authorization part

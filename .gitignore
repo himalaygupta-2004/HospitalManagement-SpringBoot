@@ -33,5 +33,6 @@ build/
 .vscode/
 
 /src/resources/application.properties
+/src/resources/application.yaml
 
 

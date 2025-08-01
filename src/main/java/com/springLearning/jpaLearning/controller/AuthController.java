@@ -4,7 +4,7 @@ package com.springLearning.jpaLearning.controller;
 import com.springLearning.jpaLearning.dto.LoginRequestDto;
 import com.springLearning.jpaLearning.dto.LoginResponseDto;
 import com.springLearning.jpaLearning.dto.SignupResponseDto;
-import com.springLearning.jpaLearning.service.AuthService;
+import com.springLearning.jpaLearning.security.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
