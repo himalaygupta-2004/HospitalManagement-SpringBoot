@@ -1,50 +1,72 @@
 package com.springLearning.jpaLearning.security;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.ExceptionHandlingConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.access.AccessDeniedHandler;
+import org.springframework.security.web.authentication.AuthenticationFailureHandler;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import static com.springLearning.jpaLearning.entity.type.PermissionType.APPOINTMENT_DELETE;
+import static com.springLearning.jpaLearning.entity.type.PermissionType.USER_MANAGE;
+import static com.springLearning.jpaLearning.entity.type.RoleType.ADMIN;
+import static com.springLearning.jpaLearning.entity.type.RoleType.DOCTOR;
 
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
+@EnableMethodSecurity
 public class WebSecurityConfig {
 
-    private final PasswordEncoder passwordEncoder;
     private final JwtAuthFilter jwtAuthFilter;
-    private final OAuth2Successhandler oAuth2Successhandler;
+    private final OAuth2Successhandler oAuth2SuccessHandler;
+    private final HandlerExceptionResolver handlerExceptionResolver;
 
-//    By default security filter makes every request authenticated
     @Bean
-    public SecurityFilterChain securityFilterChain (HttpSecurity httpSecurity) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
-                .csrf(csrfConfigurer -> csrfConfigurer.disable())
-                .sessionManagement(sessionConfig-> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .csrf(csrfConfig -> csrfConfig.disable())
+                .sessionManagement(sessionConfig ->
+                        sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/public/**","/auth/**").permitAll()
-//                        .requestMatchers("/admin/**").hasRole("ADMIN")
-//                        // 2. ADDED RULE: Allow users with DOCTOR or ADMIN role to access /doctors/**
-//                        .requestMatchers("/doctors/**").hasAnyRole("DOCTOR", "ADMIN")
-                        // Add a rule for any other request to be authenticated
+                        .requestMatchers("/public/**", "/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.DELETE, "/admin/**")
+                        .hasAnyAuthority(APPOINTMENT_DELETE.name(),
+                                USER_MANAGE.name())
+                        .requestMatchers("/admin/**").hasRole(ADMIN.name())
+                        .requestMatchers("/doctors/**").hasAnyRole(DOCTOR.name(), ADMIN.name())
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .oauth2Login(oAuth2 -> oAuth2
-                        .failureHandler(
-                        (request, response, exception) -> {
-                            log.error("OAuth2 Error : {}",exception.getMessage());
+                        .failureHandler((request, response, exception) -> {
+                            log.error("OAuth2 error: {}", exception.getMessage());
+                            handlerExceptionResolver.resolveException(request, response, null, exception);
                         })
-                        .successHandler(oAuth2Successhandler)
-                );
-//                .formLogin(Customizer.withDefaults());
+                        .successHandler(oAuth2SuccessHandler)
+                )
+                .exceptionHandling(exceptionHandlingConfigurer ->
+                        exceptionHandlingConfigurer.accessDeniedHandler((request, response, accessDeniedException) -> {
+                            handlerExceptionResolver.resolveException(request, response, null, accessDeniedException);
+                        }));
+
+//                .formLogin();
         return httpSecurity.build();
     }
-
-
 
 }

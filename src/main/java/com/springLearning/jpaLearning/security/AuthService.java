@@ -2,9 +2,13 @@ package com.springLearning.jpaLearning.security;
 
 import com.springLearning.jpaLearning.dto.LoginRequestDto;
 import com.springLearning.jpaLearning.dto.LoginResponseDto;
+import com.springLearning.jpaLearning.dto.SignUpRequestDto;
 import com.springLearning.jpaLearning.dto.SignupResponseDto;
+import com.springLearning.jpaLearning.entity.Patient;
 import com.springLearning.jpaLearning.entity.User;
 import com.springLearning.jpaLearning.entity.type.AuthProviderType;
+import com.springLearning.jpaLearning.entity.type.RoleType;
+import com.springLearning.jpaLearning.repository.PatientRepository;
 import com.springLearning.jpaLearning.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +21,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -27,76 +31,80 @@ public class AuthService {
     private final AuthUtil authUtil;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-
-
+    private final PatientRepository patientRepository;
 
     public LoginResponseDto login(LoginRequestDto loginRequestDto) {
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(),loginRequestDto.getPassword())
+                new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword())
         );
 
         User user = (User) authentication.getPrincipal();
 
         String token = authUtil.generateAccessToken(user);
+
         return new LoginResponseDto(token, user.getId());
     }
 
-    public User signUpInternal(LoginRequestDto signupRequestDto,AuthProviderType authProviderType,String providerId){
-        User user =userRepository.findByUsername(signupRequestDto.getUsername() ).orElse(null);
-        if(user!=null) throw new IllegalArgumentException("User Already Exists");
-        user =  User.builder()
+    public User signUpInternal(SignUpRequestDto signupRequestDto, AuthProviderType authProviderType, String providerId) {
+        User user = userRepository.findByUsername(signupRequestDto.getUsername()).orElse(null);
+
+        if(user != null) throw new IllegalArgumentException("User already exists");
+
+        user = User.builder()
                 .username(signupRequestDto.getUsername())
                 .providerId(providerId)
                 .providerType(authProviderType)
+                .roles(signupRequestDto.getRoles()) // Role.PATIENT
                 .build();
-        if(authProviderType == AuthProviderType.EMAIL){
-            user.setPassword((passwordEncoder.encode(signupRequestDto.getPassword())));
+
+        if(authProviderType == AuthProviderType.EMAIL) {
+            user.setPassword(passwordEncoder.encode(signupRequestDto.getPassword()));
         }
 
-        return userRepository.save(user);
+        user = userRepository.save(user);
 
+        Patient patient = Patient.builder()
+                .name(signupRequestDto.getName())
+                .email(signupRequestDto.getUsername())
+                .user(user)
+                .build();
+        patientRepository.save(patient);
+
+        return user;
     }
 
-//    Login Controller
-    public SignupResponseDto signup(LoginRequestDto signupRequestDto) {
-        User user = signUpInternal(signupRequestDto,AuthProviderType.EMAIL,null);
+    // login controller
+    public SignupResponseDto signup(SignUpRequestDto signupRequestDto) {
+        User user = signUpInternal(signupRequestDto, AuthProviderType.EMAIL, null);
         return new SignupResponseDto(user.getId(), user.getUsername());
     }
 
     @Transactional
-    public ResponseEntity<LoginResponseDto> handleOAuth2LoginRequest(OAuth2User user, String registrationId) {
-//        Fetch ProviderType and ProviderId
-//        Save the providerType and ProviderId info with user
-//        If the user has an acc : directly login the account
-//        Else signup and login
+    public ResponseEntity<LoginResponseDto> handleOAuth2LoginRequest(OAuth2User oAuth2User, String registrationId) {
         AuthProviderType providerType = authUtil.getProviderTypeFromregistrationId(registrationId);
+        String providerId = authUtil.determineProviderIdFromOAuth2User(oAuth2User, registrationId);
 
-        String providerId = authUtil.determineProviderIdFromOAuth2User(user,registrationId);
-
-        User newUser = userRepository.findByProviderIdAndProviderType(providerId,providerType).orElse(null);
-
-        String email = user.getAttribute("email");
+        User user = userRepository.findByProviderIdAndProviderType(providerId, providerType).orElse(null);
+        String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
 
         User emailUser = userRepository.findByUsername(email).orElse(null);
 
-        if(newUser ==  null && emailUser==null) {
-//            Signup Flow Entry cause User doesnt exist
-            String username = authUtil.determineUsernameFromOAuth2User(user,registrationId,providerId);
-
-            newUser = (User) signUpInternal(new LoginRequestDto(username,null),providerType,providerId);
-
-        }else if(user!=null){
-            if(email!=null && !email.isBlank() && !email.equals(newUser.getUsername())){
-                newUser.setUsername(email);
-                userRepository.save(newUser);
-            };
-        }else {
-            throw new BadCredentialsException("This email is already registered with email "+ email);
+        if(user == null && emailUser == null) {
+            // signup flow:
+            String username = authUtil.determineUsernameFromOAuth2User(oAuth2User, registrationId, providerId);
+            user = signUpInternal(new SignUpRequestDto(username, null, name, Set.of(RoleType.PATIENT)), providerType, providerId);
+        } else if(user != null) {
+            if(email != null && !email.isBlank() && !email.equals(user.getUsername())) {
+                user.setUsername(email);
+                userRepository.save(user);
+            }
+        } else {
+            throw new BadCredentialsException("This email is already registered with provider "+emailUser.getProviderType());
         }
 
-        LoginResponseDto loginResponseDto = new LoginResponseDto(authUtil.generateAccessToken(newUser), newUser.getId() );
-
+        LoginResponseDto loginResponseDto = new LoginResponseDto(authUtil.generateAccessToken(user), user.getId());
         return ResponseEntity.ok(loginResponseDto);
     }
 }

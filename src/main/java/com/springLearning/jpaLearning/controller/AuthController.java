@@ -3,7 +3,8 @@ package com.springLearning.jpaLearning.controller;
 
 import com.springLearning.jpaLearning.dto.LoginRequestDto;
 import com.springLearning.jpaLearning.dto.LoginResponseDto;
-import com.springLearning.jpaLearning.dto.SignupRequestDto;
+import com.springLearning.jpaLearning.dto.SignUpRequestDto;
+import com.springLearning.jpaLearning.dto.SignUpRequestDto;
 import com.springLearning.jpaLearning.dto.SignupResponseDto;
 import com.springLearning.jpaLearning.security.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -21,13 +22,12 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto){
+    public ResponseEntity<LoginResponseDto> login(@RequestBody LoginRequestDto loginRequestDto) {
         return ResponseEntity.ok(authService.login(loginRequestDto));
-
     }
-    @PostMapping("/signup")
-    public ResponseEntity<SignupResponseDto> signup(@RequestBody SignupRequestDto signupRequestDto){
-        return ResponseEntity.ok(authService.signup(signupRequestDto));
 
+    @PostMapping("/signup")
+    public ResponseEntity<SignupResponseDto> signup(@RequestBody SignUpRequestDto signupRequestDto) {
+        return ResponseEntity.ok(authService.signup(signupRequestDto));
     }
 }

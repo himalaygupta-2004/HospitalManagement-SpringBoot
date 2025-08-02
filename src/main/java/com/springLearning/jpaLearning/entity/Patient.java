@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,12 +30,13 @@ public class Patient {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false,length = 40)
+    @Column(nullable = false, length = 40)
     private String name;
 
-//    private LocalDate dob;
+    //    @ToString.Exclude
+    private LocalDate birthDate;
 
-    @Column(nullable = false)
+    @Column(unique = true, nullable = false)
     private String email;
 
     private String gender;
@@ -50,19 +52,10 @@ public class Patient {
     @Enumerated(EnumType.STRING)
     private BloodGroupType bloodGroup;
 
-//    Owning side
-    @OneToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST},orphanRemoval = true)
-    @JoinColumn(name = "patient_insurance_id",unique = true)
+    @OneToOne(cascade = {CascadeType.ALL}, orphanRemoval = true)
+    @JoinColumn(name = "patient_insurance_id") // owning side
     private Insurance insurance;
 
-//    Inverse Side
-    @OneToMany(mappedBy = "patient",fetch = FetchType.EAGER,cascade = {CascadeType.REMOVE},orphanRemoval = true )
-    @ToString.Exclude
+    @OneToMany(mappedBy = "patient", cascade = {CascadeType.REMOVE}, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<Appointment> appointment = new ArrayList<>();
-
-//    If we just want to return patient we donot need to get the list of appoitnments , we can change the fetch type from Eager to lazy
-
-
-
-
 }

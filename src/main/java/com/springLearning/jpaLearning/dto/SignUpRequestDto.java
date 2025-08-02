@@ -10,15 +10,12 @@ import java.util.HashSet;
 import java.util.Set;
 
 @Data
-//@RequiredArgsConstructor
-@NoArgsConstructor
 @AllArgsConstructor
-public class SignupRequestDto {
+@NoArgsConstructor
+public class SignUpRequestDto {
     private String username;
     private String password;
     private String name;
 
-//    Shouldn't be in production
-    private Set<RoleType> roles =new HashSet<>();
-
+    private Set<RoleType> roles = new HashSet<>();
 }

@@ -7,10 +7,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import static com.springLearning.jpaLearning.entity.type.PermissionType.*;
 import static com.springLearning.jpaLearning.entity.type.RoleType.*;
-
 
 public class RolePermissionMapping {
 

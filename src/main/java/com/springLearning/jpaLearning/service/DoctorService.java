@@ -9,16 +9,18 @@ import com.springLearning.jpaLearning.repository.DoctorRepository;
 import com.springLearning.jpaLearning.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class DoctorService {
+
     private final DoctorRepository doctorRepository;
     private final ModelMapper modelMapper;
     private final UserRepository userRepository;
@@ -30,11 +32,12 @@ public class DoctorService {
                 .collect(Collectors.toList());
     }
 
+
     @Transactional
     public DoctorResponseDto onBoardNewDoctor(OnboardDoctorRequestDto onBoardDoctorRequestDto) {
         User user = userRepository.findById(onBoardDoctorRequestDto.getUserId()).orElseThrow();
 
-        if (doctorRepository.existsById(onBoardDoctorRequestDto.getUserId())) {
+        if(doctorRepository.existsById(onBoardDoctorRequestDto.getUserId())) {
             throw new IllegalArgumentException("Already a doctor");
         }
 

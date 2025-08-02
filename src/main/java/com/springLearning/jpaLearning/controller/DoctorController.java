@@ -16,6 +16,7 @@ import java.util.List;
 @RequestMapping("/doctors")
 @RequiredArgsConstructor
 public class DoctorController {
+
     private final AppointmentService appointmentService;
 
     @GetMapping("/appointments")

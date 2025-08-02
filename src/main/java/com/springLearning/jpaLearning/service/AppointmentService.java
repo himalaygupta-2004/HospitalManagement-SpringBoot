@@ -45,7 +45,7 @@ public class AppointmentService {
 
         appointment.setPatient(patient);
         appointment.setDoctor(doctor);
-//        patient.getAppointments().add(appointment); // to maintain consistency
+        patient.getAppointment().add(appointment); // to maintain consistency
 
         appointment = appointmentRepository.save(appointment);
         return modelMapper.map(appointment, AppointmentResponseDto.class);
